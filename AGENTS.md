@@ -48,8 +48,9 @@ When switching states, the inactive deck's volume ramps down and the deck is pau
 
 ### Components
 - **`internal/telemetry/packet.go`**: Parses the binary 324-byte (V2) or 311-byte (V1) Forza Horizon "Data Out" UDP packet.
-- **`internal/telemetry/state.go`**: State machine managing `IDLE` vs `DRIVE` states with hysteresis:
-  - Transition to `DRIVE`: Instant trigger when `Speed > driveSpeed` (default: 10 mph) OR `Throttle > driveThrottle` (default: 25%).
+- **`internal/telemetry/state.go`**: State machine managing `STANDBY`, `IDLE`, and `DRIVE` states with hysteresis:
+  - Initial State (`STANDBY`): Keeps audio silent during daemon startup, game launch, and title screen.
+  - Transition to `DRIVE`: Instant trigger when `Speed > driveSpeed` (default: 10 mph) OR `Throttle > driveThrottle` (default: 25%), activating playback.
   - Transition to `IDLE`: Requires `Speed < idleSpeed` (default: 5 mph) AND `Throttle == 0` sustained for `cooldownDuration` (default: 4.0s).
 - **`internal/player/deck.go`**: Manages directory playback, track shuffling/sequential queue, and pause/resume at PCM sample level.
 - **`internal/player/mixer.go`**: In-memory PCM mixer combining Deck A and Deck B with smooth crossfading/volume ramping over a configurable duration (default: 2.0s).

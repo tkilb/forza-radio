@@ -6,7 +6,7 @@ It listens to Forza's real-time UDP telemetry ("Data Out") and crossfades betwee
 - **Chill Deck**: Ambient / low-tempo tracks while parked, cruising scenic vistas, or idling.
 - **Drive Deck**: High-energy / racing tracks when accelerating, cornering, and driving fast.
 
-When you transition between driving and idling, the inactive deck smoothly fades down and **pauses where you left off**, picking up seamlessly when you switch back.
+When you start the game, the radio starts in **standby mode** (silent on the title screen and menus). Playback is engaged once you first accelerate into **Drive Deck**, and then automatically crossfades between driving and idling as you play. The inactive deck smoothly fades down and **pauses where you left off**, picking up seamlessly when you switch back.
 
 ---
 

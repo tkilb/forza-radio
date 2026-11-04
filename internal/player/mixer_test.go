@@ -59,3 +59,27 @@ func TestAdvanceGain(t *testing.T) {
 		})
 	}
 }
+
+func TestMixerStandbySilence(t *testing.T) {
+	m := NewMixer(nil, nil, 0, 44100, nil)
+
+	buf := make([]byte, 128)
+	// Fill buffer with non-zero bytes to ensure Mixer.Read clears them to silence
+	for i := range buf {
+		buf[i] = 0xAA
+	}
+
+	n, err := m.Read(buf)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != len(buf) {
+		t.Fatalf("expected to read %d bytes, got %d", len(buf), n)
+	}
+
+	for i, b := range buf {
+		if b != 0 {
+			t.Fatalf("byte at index %d is not 0 (got %d)", i, b)
+		}
+	}
+}

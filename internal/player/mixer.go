@@ -42,22 +42,26 @@ func NewMixer(chillDeck, driveDeck *Deck, fadeDuration time.Duration, sampleRate
 	m := &Mixer{
 		chillDeck:    chillDeck,
 		driveDeck:    driveDeck,
-		targetState:  telemetry.StateIdle,
-		faderPos:     0.0, // Start with Chill active
+		targetState:  telemetry.StateStandby,
+		faderPos:     1.0, // Pre-position at Drive so it starts immediately once first engaged
 		fadeDuration: fadeDuration,
 		sampleRate:   sampleRate,
 		logger:       logger,
 	}
 
-	chillDeck.SetVolume(1.0)
-	chillDeck.SetPaused(false)
-	driveDeck.SetVolume(0.0)
-	driveDeck.SetPaused(true)
+	if chillDeck != nil {
+		chillDeck.SetVolume(0.0)
+		chillDeck.SetPaused(true)
+	}
+	if driveDeck != nil {
+		driveDeck.SetVolume(0.0)
+		driveDeck.SetPaused(true)
+	}
 
 	return m
 }
 
-// SetTargetState switches target state between StateIdle and StateDrive.
+// SetTargetState switches target state between StateStandby, StateIdle, and StateDrive.
 func (m *Mixer) SetTargetState(state telemetry.State) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -75,6 +79,13 @@ func (m *Mixer) Read(p []byte) (int, error) {
 	nBytes := len(p)
 	if nBytes == 0 {
 		return 0, nil
+	}
+
+	if m.targetState == telemetry.StateStandby {
+		for i := range p {
+			p[i] = 0
+		}
+		return nBytes, nil
 	}
 
 	if len(m.chillBuf) < nBytes {

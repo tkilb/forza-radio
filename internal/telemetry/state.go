@@ -8,8 +8,9 @@ import (
 type State string
 
 const (
-	StateIdle  State = "IDLE"
-	StateDrive State = "DRIVE"
+	StateStandby State = "STANDBY"
+	StateIdle    State = "IDLE"
+	StateDrive   State = "DRIVE"
 )
 
 // Config configures the telemetry thresholds and cooldown timings.
@@ -37,11 +38,11 @@ type StateMachine struct {
 	idleStartTime time.Time
 }
 
-// NewStateMachine creates a new state machine initialized in StateIdle.
+// NewStateMachine creates a new state machine initialized in StateStandby.
 func NewStateMachine(cfg Config) *StateMachine {
 	return &StateMachine{
 		cfg:          cfg,
-		currentState: StateIdle,
+		currentState: StateStandby,
 	}
 }
 
@@ -56,6 +57,15 @@ func (sm *StateMachine) Process(pkt *Packet, now time.Time) (State, bool) {
 	throttle := pkt.ThrottlePercent()
 
 	switch sm.currentState {
+	case StateStandby:
+		// Standby until first drive mode is triggered
+		if speed >= sm.cfg.DriveSpeedThreshold || throttle >= sm.cfg.DriveThrottleThreshold {
+			sm.currentState = StateDrive
+			sm.idleStartTime = time.Time{}
+			return sm.currentState, true
+		}
+		return sm.currentState, false
+
 	case StateIdle:
 		// Trigger drive immediately if speed or throttle passes the threshold
 		if speed >= sm.cfg.DriveSpeedThreshold || throttle >= sm.cfg.DriveThrottleThreshold {
@@ -88,7 +98,7 @@ func (sm *StateMachine) Process(pkt *Packet, now time.Time) (State, bool) {
 		return sm.currentState, false
 
 	default:
-		sm.currentState = StateIdle
+		sm.currentState = StateStandby
 		return sm.currentState, false
 	}
 }

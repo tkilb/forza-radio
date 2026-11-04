@@ -25,15 +25,23 @@ func TestStateMachine(t *testing.T) {
 		expectedChanged   bool
 	}{
 		{
-			name:            "start at idle",
+			name:            "start at standby",
 			speed:           0.0,
 			throttle:        0,
 			elapsed:         0,
-			expectedState:   StateIdle,
+			expectedState:   StateStandby,
 			expectedChanged: false,
 		},
 		{
-			name:            "cross drive speed threshold",
+			name:            "remain in standby below drive threshold",
+			speed:           float32(4.0 / SpeedConversionMpsToMph), // ~4 mph
+			throttle:        20,                                     // ~7.8% < 25%
+			elapsed:         500 * time.Millisecond,
+			expectedState:   StateStandby,
+			expectedChanged: false,
+		},
+		{
+			name:            "cross drive speed threshold from standby",
 			speed:           float32(12.0 / SpeedConversionMpsToMph), // ~12 mph
 			throttle:        0,
 			elapsed:         1 * time.Second,
@@ -78,6 +86,14 @@ func TestStateMachine(t *testing.T) {
 			throttle:        0,
 			elapsed:         7100 * time.Millisecond,
 			expectedState:   StateIdle,
+			expectedChanged: true,
+		},
+		{
+			name:            "resume driving from idle",
+			speed:           float32(15.0 / SpeedConversionMpsToMph),
+			throttle:        0,
+			elapsed:         8 * time.Second,
+			expectedState:   StateDrive,
 			expectedChanged: true,
 		},
 	}
